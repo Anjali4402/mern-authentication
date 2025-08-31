@@ -4,6 +4,7 @@ import { config } from 'dotenv';     // To load environment variables from a fil
 import cookieParser from 'cookie-parser'; // To read cookies from requests
 import cors from 'cors';             // To allow frontend and backend to talk to each other (cross-origin requests)
 import { connection } from './database/dbConnection.js';  // add Database connection
+import { errorMiddleware } from './middlewares/error.js';  // Add Error handler middleware
 
 // Create an Express app (this will be our backend server)
 export const app = express();
@@ -33,3 +34,9 @@ app.use(express.urlencoded({ extended: true }));
 
 
 connection();
+
+
+
+
+// always use error middleware at the end 
+app.use(errorMiddleware)
