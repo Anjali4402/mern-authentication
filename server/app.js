@@ -3,6 +3,7 @@ import express from 'express';       // Web framework for Node.js (used to build
 import { config } from 'dotenv';     // To load environment variables from a file
 import cookieParser from 'cookie-parser'; // To read cookies from requests
 import cors from 'cors';             // To allow frontend and backend to talk to each other (cross-origin requests)
+import { connection } from './database/dbConnection.js';  // add Database connection
 
 // Create an Express app (this will be our backend server)
 export const app = express();
@@ -29,3 +30,6 @@ app.use(express.json());
 // Parse URL-encoded data (like form submissions)
 // like it will know what type of data user have send from the Frontend
 app.use(express.urlencoded({ extended: true }));
+
+
+connection();
