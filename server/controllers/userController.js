@@ -1,6 +1,10 @@
 import ErrorHandler from '../middlewares/error.js';
 import { catchAsyncError } from '../middlewares/catchAsyncError.js';
 import { User } from '../models/userModel.js';
+import sendEmail from '../utils/sendEmail.js';
+import { Twilio } from 'twilio';
+
+const client = Twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
 
 export const register = catchAsyncError(async (req, res, next) => {
@@ -84,4 +88,82 @@ export const register = catchAsyncError(async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-})
+});
+
+
+// create function for send verification code.
+// like when we share the code /otp in email or phone etc..
+async function sendVerificationCode(verificationMethod, verificationCode, email, phone) {
+
+
+    try {
+
+        if (verificationMethod === 'email') {
+            const message = generateEmailTemplete(verificationCode);
+
+            // the will send the email code in user email.
+            sendEmail({ email, subject: "Your Verifciation Code", message })
+
+            // if verification method is phone
+        } else if (verificationMethod === 'phone') {
+
+            // we will get code ---> 45678
+            // convert this value ---> 4 5 6 7 8
+            const verificationCodeWithSpace = verificationCode
+                .toString()
+                .split("")
+                .join(" ");
+
+
+                // send message on phone
+            await client.calls.create({
+                // twiml is twilio markup language.
+                twiml: `<Response><Say>Your verification code is${verificationCodeWithSpace}. Your verification code is ${verificationCodeWithSpace} </Say></Response>`,
+                from: process.env.TWILIO_PHONE, // The number to call from 
+                to: phone, // The number to call
+            });
+        } else {
+            throw new ErrorHandler("Invalid verification method.", 500);
+        }
+    } catch (error) {
+
+        new ErrorHandler("Failed to send verification code.", 500)
+
+    }
+}
+
+// Email templete for verification code.
+function generateEmailTemplete(verificationCode) {
+    return `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; 
+              border: 1px solid #ddd; border-radius: 8px; background-color: #ffffff;">
+    
+    <h2 style="color: #4CAF50; text-align: center;">Verification Code</h2>
+    
+    <p style="font-size: 16px; color: #333;">Dear User,</p>
+    <p style="font-size: 16px; color: #333;">Your verification code is:</p>
+    
+    <div style="text-align: center; margin: 20px 0;">
+      <span style="display: inline-block; font-size: 24px; font-weight: bold; color: #4CAF50; 
+                   padding: 12px 24px; border: 1px solid #4CAF50; border-radius: 6px;">
+        ${verificationCode}
+      </span>
+    </div>
+    
+    <p style="font-size: 16px; color: #333;">
+      Please use this code to verify your email address. The code will expire in 10 minutes.
+    </p>
+    
+    <p style="font-size: 16px; color: #333;">
+      If you did not request this, please ignore this email.
+    </p>
+    
+    <p style="font-size: 16px; color: #333;">Thank you,<br>Your Company Team</p>
+    
+    <footer style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
+      This is an automated message. Please do not reply to this email.
+    </footer>
+  </div>
+  `;
+};
+
