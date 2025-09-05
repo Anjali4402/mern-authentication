@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'; // To read cookies from requests
 import cors from 'cors';             // To allow frontend and backend to talk to each other (cross-origin requests)
 import { connection } from './database/dbConnection.js';  // add Database connection
 import { errorMiddleware } from './middlewares/error.js';  // Add Error handler middleware
+import userRouter from './routes/userRouter.js';  // import userRouter
 
 // Create an Express app (this will be our backend server)
 export const app = express();
@@ -31,6 +32,10 @@ app.use(express.json());
 // Parse URL-encoded data (like form submissions)
 // like it will know what type of data user have send from the Frontend
 app.use(express.urlencoded({ extended: true }));
+
+
+// create a base url for User router
+app.use('/api/v1/user', userRouter) // if url is consisting this '/api/v1/user' route then it will access to userRouter.
 
 
 connection();

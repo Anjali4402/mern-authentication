@@ -19,7 +19,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
         // create function that check country code (only for india) and phone number digit is 10.
         function validatePhoneNumber(phone) {
-            const phoneRegex = /^+91\d(10)$/;
+            const phoneRegex = /^\+91\d(10)$/;
             return phoneRegex.test(phone);
         }
 
