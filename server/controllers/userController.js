@@ -1,10 +1,10 @@
 import ErrorHandler from '../middlewares/error.js';
 import { catchAsyncError } from '../middlewares/catchAsyncError.js';
 import { User } from '../models/userModel.js';
-import sendEmail from '../utils/sendEmail.js';
-import { Twilio } from 'twilio';
+import { sendEmail } from '../utils/sendEmail.js';
+import twilio from 'twilio';
 
-const client = Twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
 
 export const register = catchAsyncError(async (req, res, next) => {
@@ -19,7 +19,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
         // create function that check country code (only for india) and phone number digit is 10.
         function validatePhoneNumber(phone) {
-            const phoneRegex = /^\+91\d(10)$/;
+            const phoneRegex = /^\+91\d{10}$/;
             return phoneRegex.test(phone);
         }
 
@@ -78,12 +78,8 @@ export const register = catchAsyncError(async (req, res, next) => {
         await user.save();
 
         // Function that send the verification code.
-        sendVerificationCode(verificationMethod, verificationCode, email, phone);
+        sendVerificationCode(verificationMethod, verificationCode, email, phone, name, res);
 
-        // send success response.
-        res.status(200).json({
-            success: true,
-        });
 
     } catch (error) {
         next(error)
@@ -93,7 +89,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
 // create function for send verification code.
 // like when we share the code /otp in email or phone etc..
-async function sendVerificationCode(verificationMethod, verificationCode, email, phone) {
+async function sendVerificationCode(verificationMethod, verificationCode, email, phone, name, res) {
 
 
     try {
@@ -103,6 +99,13 @@ async function sendVerificationCode(verificationMethod, verificationCode, email,
 
             // the will send the email code in user email.
             sendEmail({ email, subject: "Your Verifciation Code", message })
+
+
+            // send success response.
+            res.status(200).json({
+                success: true,
+                message : `Verification email successfully sent to ${name}`
+            });
 
             // if verification method is phone
         } else if (verificationMethod === 'phone') {
@@ -115,19 +118,35 @@ async function sendVerificationCode(verificationMethod, verificationCode, email,
                 .join(" ");
 
 
-                // send message on phone
+            // send message on phone
             await client.calls.create({
                 // twiml is twilio markup language.
                 twiml: `<Response><Say>Your verification code is${verificationCodeWithSpace}. Your verification code is ${verificationCodeWithSpace} </Say></Response>`,
                 from: process.env.TWILIO_PHONE, // The number to call from 
                 to: phone, // The number to call
             });
+
+
+            // send success response.
+            res.status(200).json({
+                success: true,
+                message : "OTP sent"
+            });
         } else {
-            throw new ErrorHandler("Invalid verification method.", 500);
+            // throw new ErrorHandler("Invalid verification method.", 500);
+            // send success response.
+        return res.status(500).json({
+            success: false,
+            message: "Invalid verification method"
+        });
         }
     } catch (error) {
 
-        new ErrorHandler("Failed to send verification code.", 500)
+        // new ErrorHandler("Failed to send verification code.", 500)
+        return  res.status(500).json({
+            success: false,
+            message: "Verification code failed to send."
+        });
 
     }
 }

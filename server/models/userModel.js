@@ -4,31 +4,31 @@ import bcrypt from 'bcrypt';
 
 
 const userSchema = new mongoose.Schema({
-    name : String,
-    email : String,
-    password : {
-        type : String,
-        minLength : [8, "Password must have at least 8 characters."],
-        maxLength : [32, "Password cannot have more then 32 characters."],
+    name: String,
+    email: String,
+    password: {
+        type: String,
+        minLength: [8, "Password must have at least 8 characters."],
+        maxLength: [32, "Password cannot have more then 32 characters."],
     },
-    phone : String,
-    accountVerified : { type : Boolean, default : false },
-    verificationCode : Number,
-    verificationCodeExpire : Date,
-    resetPasswordToken : String,
-    resetPasswordExpire : Date,
-    createdAt : {
-        type : Date,
-        default : Date.now,
+    phone: String,
+    accountVerified: { type: Boolean, default: false },
+    verificationCode: Number,
+    verificationCodeExpire: Date,
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    createdAt: {
+        type: Date,
+        default: Date.now,
     },
 });
 
 
 // it will run before the schema check // directly first run this one.
 // we are hashing the password , and making it strong
-userSchema.pre('save', async function(next){
+userSchema.pre('save', async function (next) {
 
-    if(!this.isModified("password")){
+    if (!this.isModified("password")) {
         next();
     }
     this.password = await bcrypt.hash(this.password, 10)
@@ -37,13 +37,13 @@ userSchema.pre('save', async function(next){
 
 // It will run when we login  like
 // It will compare the current entered password to the already increpted password .
-userSchema.methods.comparePassword = async function(enteredPassword){
+userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt(enteredPassword, this.password);
 };
 
 
 // Create funciton to generate verification code 
-userSchema.methods.generateVerificationCode = function(){
+userSchema.methods.generateVerificationCode = function () {
     function generateRandomFiveDigitNumber() {
 
         // set first digit which is in between 1 to 9 
@@ -51,16 +51,16 @@ userSchema.methods.generateVerificationCode = function(){
 
         // for remain digit need to 4 digit ( can be any)
         const remainingDigits = Math.floor(Math.random() * 10000)
-        .toString()
-        .padStart(4,0);
+            .toString()
+            .padStart(4, 0);
 
         // concatenate the first and remain digit and return them 
-        return parseInt(firstDigit, + remainingDigits);
+        return parseInt(firstDigit + remainingDigits);
     }
 
     // call the function and set the value
     const verificationCode = generateRandomFiveDigitNumber();
-    
+
     // set verification code value in verification code 
     this.verificationCode = verificationCode;
     // set the value of verification code expire 

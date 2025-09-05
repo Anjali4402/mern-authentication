@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { register } from '../controllers/userController';
+import { register } from '../controllers/userController.js';
 
 // create router instance 
 const router = express.Router();
