@@ -42,4 +42,34 @@ userSchema.methods.comparePassword = async function(enteredPassword){
 };
 
 
+// Create funciton to generate verification code 
+userSchema.methods.generateVerificationCode = function(){
+    function generateRandomFiveDigitNumber() {
+
+        // set first digit which is in between 1 to 9 
+        const firstDigit = Math.floor(Math.random() * 9) + 1;
+
+        // for remain digit need to 4 digit ( can be any)
+        const remainingDigits = Math.floor(Math.random() * 10000)
+        .toString()
+        .padStart(4,0);
+
+        // concatenate the first and remain digit and return them 
+        return parseInt(firstDigit, + remainingDigits);
+    }
+
+    // call the function and set the value
+    const verificationCode = generateRandomFiveDigitNumber();
+    
+    // set verification code value in verification code 
+    this.verificationCode = verificationCode;
+    // set the value of verification code expire 
+    this.verificationCodeExpire = Date.now() + 5 * 60 * 1000;
+
+    return verificationCode;
+};
+
+
+
+
 export const User = mongoose.model('User', userSchema);
