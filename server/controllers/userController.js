@@ -186,3 +186,109 @@ function generateEmailTemplete(verificationCode) {
   `;
 };
 
+
+
+
+
+// Create API Method of verify otp.
+export const verifyOTP = catchAsyncError(async (req, res, next) => {
+
+    // get value form the request's body
+    const {email, otp, phone } = req.body;
+
+    // create function that check country code (only for india) and phone number digit is 10.
+        function validatePhoneNumber(phone) {
+            const phoneRegex = /^\+91\d{10}$/;
+            return phoneRegex.test(phone);
+        }
+
+
+        // Check if mobile number is not valid. throw error.
+        if(!validatePhoneNumber(phone)){
+            return next(new ErrorHandler("Invalid phone number.", 400));
+        };
+
+        try{
+            // get all entires of the same user ( same email or phone );
+            // and sort them in decending order like the latest new will be in the starting.
+            const userAllEntries = await User.find({
+                $or : [
+                    { email , accountVerified: false },
+                    { phone , accountVerified: false }
+                ]
+            }).sort({ createdAt : -1 });
+
+            // If there is not any entires from that user. throw error.
+            if(!userAllEntries){
+                return next(new ErrorHandler("User not found.", 400))
+            };
+
+            // store single user entry.
+            let user;
+
+            // If same user entry is more then 1.
+            if(userAllEntries.length > 1) {
+                
+                // because the data is sorted then the latest user entry will at the starting.
+                user = userAllEntries[0];
+
+                // Delete other Entries
+                await User.deleteMany({
+                    _id : { $ne : user._id }, // not remove that user which id is user._id
+                    $or : [
+                        { phone, accountVerified : false },
+                        { email, accountVerified : false }
+                    ],
+                });
+            } else {
+                user = userAllEntries[0];
+            };
+
+            
+            // if verification code (stored in db) and otp (sent by user) not matched.
+            if(user.verificationCode !== Number(otp)){
+                return next(new ErrorHandler("Invalid OTP.", 400));
+            }
+
+
+            // get current time
+            const currentTime = Date.now();
+
+            // get code expire time and change that formate
+            const verificationCodeExpire = new Date(
+                user.verificationCodeExpire
+            ).getTime();
+            console.log(currentTime);
+            console.log(verificationCodeExpire);
+
+
+            // check if current time is above the token expiration time.
+            // then throw "Token expired" error.
+            if(currentTime > verificationCodeExpire){
+                return next(new ErrorHandler("OTP Expired", 400));
+            }
+
+            // if Everything is fine till now
+
+            // change these value.
+            user.accountVerified = true;
+            user.verificationCode = null;
+            user.verificationCodeExpire = null;
+
+            // set/update these value in the database user collection.
+            await user.save({ validateModifiedOnly : true}); // validateModifiedOnly --> check only those type which values we are changing.
+
+
+            // Current not added any send token function but add here.
+            // sendToken();
+
+        } catch(error){
+
+        }
+
+
+
+
+
+})
+
