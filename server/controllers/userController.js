@@ -220,7 +220,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
             }).sort({ createdAt : -1 });
 
             // If there is not any entires from that user. throw error.
-            if(!userAllEntries){
+            if(!userAllEntries.length > 0){
                 return next(new ErrorHandler("User not found.", 400))
             };
 
