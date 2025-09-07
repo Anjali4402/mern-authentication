@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 
 const userSchema = new mongoose.Schema({
@@ -68,6 +69,19 @@ userSchema.methods.generateVerificationCode = function () {
 
     return verificationCode;
 };
+
+
+
+userSchema.methods.generateToken = function(){
+    //  we can generate token using sign method
+    return jwt.sign(
+        {id : this._id}, // in jwt we have to store a unique identity of that user. in this case we have generated mongodb id
+        process.env.JWT_SECRIT_KEY,  // secreate key to match token
+        {expiresIn: process.env.JWT_EXPIRE // expiration time
+
+ } )
+
+}
 
 
 

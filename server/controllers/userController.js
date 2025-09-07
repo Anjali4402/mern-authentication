@@ -3,6 +3,7 @@ import { catchAsyncError } from '../middlewares/catchAsyncError.js';
 import { User } from '../models/userModel.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import twilio from 'twilio';
+import { sendToken } from '../utils/sendToken.js';
 
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -279,10 +280,13 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
             await user.save({ validateModifiedOnly : true}); // validateModifiedOnly --> check only those type which values we are changing.
 
 
-            // Current not added any send token function but add here.
-            // sendToken();
+            // If use successfull verify then 
+            // send token to the cookies. 
+            sendToken(user, 200, "Account Verified", res);
 
         } catch(error){
+
+            return next(new ErrorHandler("Internal Server Error.", 500))
 
         }
 
