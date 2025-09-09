@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         minLength: [8, "Password must have at least 8 characters."],
         maxLength: [32, "Password cannot have more then 32 characters."],
+        select : false,  // by this we can get the user's password
     },
     phone: String,
     accountVerified: { type: Boolean, default: false },

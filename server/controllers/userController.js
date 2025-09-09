@@ -290,9 +290,46 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
 
         }
 
+});
 
 
 
 
+// Create API Method for login
+export const login = catchAsyncError(async (req, res, next) => {
+
+    // get email and password from the request 
+        const {email, password } = req.body;
+    
+    // check if we are getting email and password both.
+    if(!email || !password){
+        return next(new ErrorHandler("Email and password are required", 400));
+    };
+
+    
+
+    // Find the user which match with this email and password.
+    const user = await User.findOne({email, accountVerified : true}).select(
+        "+password"
+    );
+
+
+    // If no user found
+    if(!user){
+        next(new ErrorHandler("Invalid Email and password", 400))
+    };
+
+    // now try to match the password
+    const isPasswordMatched = await user.comparePassword(password);
+
+    console.log(isPasswordMatched);
+    // if not password matched
+    if(!isPasswordMatched){
+        next(new ErrorHandler("Invalid email or password.", 400));
+    }
+    
+
+    // after successfully login send token.
+    sendToken(user, 200, "User logged in successfully.", res);
 })
 
