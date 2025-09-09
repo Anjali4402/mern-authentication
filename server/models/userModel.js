@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcryptjs";
+
 import jwt from 'jsonwebtoken';
 
 
@@ -28,19 +29,31 @@ const userSchema = new mongoose.Schema({
 
 // it will run before the schema check // directly first run this one.
 // we are hashing the password , and making it strong
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
+  // only hash if password is modified
+  if (!this.isModified("password")) return next();
 
-    if (!this.isModified("password")) {
-        next();
-    }
-    this.password = await bcrypt.hash(this.password, 10)
+  try {
+    // hash password with salt rounds = 10
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
+// userSchema.pre('save', async function (next) {
+
+//     if (!this.isModified("password")) {
+//         next();
+//     }
+//     this.password = await bcrypt.hash(this.password, 10)
+// });
 
 
 // It will run when we login  like
 // It will compare the current entered password to the already increpted password .
 userSchema.methods.comparePassword = async function (enteredPassword) {
-    return await bcrypt(enteredPassword, this.password);
+    return await bcrypt.compare(enteredPassword, this.password);
 };
 
 

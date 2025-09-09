@@ -11,7 +11,7 @@ const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 export const register = catchAsyncError(async (req, res, next) => {
     try {
         // get Details for the api request
-        const { name, email, phone, password, verificationMethod } = req.body;
+        const { name, email, phone, password, verificationMethod } = req.body || {};
 
         // Throw error if any field is missing.
         if (!name || !email || !phone || !password || !verificationMethod) {
@@ -83,7 +83,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
 
     } catch (error) {
-        next(error)
+        return next(error)
     }
 });
 
@@ -195,7 +195,11 @@ function generateEmailTemplete(verificationCode) {
 export const verifyOTP = catchAsyncError(async (req, res, next) => {
 
     // get value form the request's body
-    const {email, otp, phone } = req.body;
+    const {email, otp, phone } = req.body || {};
+
+    if(!email || !otp || !phone){
+        return next(new ErrorHandler("All Fields are required."))
+    }
 
     // create function that check country code (only for india) and phone number digit is 10.
         function validatePhoneNumber(phone) {
@@ -299,7 +303,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
 export const login = catchAsyncError(async (req, res, next) => {
 
     // get email and password from the request 
-        const {email, password } = req.body;
+        const {email, password } = req.body || {}; // req?.body;
     
     // check if we are getting email and password both.
     if(!email || !password){
@@ -316,7 +320,7 @@ export const login = catchAsyncError(async (req, res, next) => {
 
     // If no user found
     if(!user){
-        next(new ErrorHandler("Invalid Email and password", 400))
+        return next(new ErrorHandler("Invalid Email and password", 400))
     };
 
     // now try to match the password
@@ -325,7 +329,7 @@ export const login = catchAsyncError(async (req, res, next) => {
     console.log(isPasswordMatched);
     // if not password matched
     if(!isPasswordMatched){
-        next(new ErrorHandler("Invalid email or password.", 400));
+        return next(new ErrorHandler("Invalid email or password.", 400));
     }
     
 
