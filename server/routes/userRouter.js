@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { login, register, verifyOTP } from '../controllers/userController.js';
+import { login, logout, register, verifyOTP } from '../controllers/userController.js';
 
 // create router instance 
 const router = express.Router();
@@ -13,6 +13,9 @@ router.post("/otp-verification", verifyOTP);
 
 // Login route.
 router.post("/login", login);
+
+// Logout route.
+router.get("/logout", logout);
 
 
 

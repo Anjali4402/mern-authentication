@@ -335,5 +335,25 @@ export const login = catchAsyncError(async (req, res, next) => {
 
     // after successfully login send token.
     sendToken(user, 200, "User logged in successfully.", res);
+});
+
+
+
+
+// Create API method for logout
+export const logout = catchAsyncError(async (req, res, next) => {
+    
+    // for logout user , clear the token from cookies
+
+    res
+    .status(200)
+    .cookie("token", "", {
+        expires : new Date(Date.now()),
+        httpOnly : true,
+    })
+    .json({
+        success : true,
+        message : "Logged out successfully.",
+    });
 })
 
