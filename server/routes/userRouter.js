@@ -1,6 +1,7 @@
 
 import express from 'express';
 import { login, logout, register, verifyOTP } from '../controllers/userController.js';
+import { isAuthenticated } from '../middlewares/auth.js';
 
 // create router instance 
 const router = express.Router();
@@ -15,7 +16,7 @@ router.post("/otp-verification", verifyOTP);
 router.post("/login", login);
 
 // Logout route.
-router.get("/logout", logout);
+router.get("/logout", isAuthenticated, logout);
 
 
 
