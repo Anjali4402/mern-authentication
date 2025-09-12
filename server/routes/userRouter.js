@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { login, logout, register, verifyOTP } from '../controllers/userController.js';
+import { getUser, login, logout, register, verifyOTP } from '../controllers/userController.js';
 import { isAuthenticated } from '../middlewares/auth.js';
 
 // create router instance 
@@ -18,7 +18,8 @@ router.post("/login", login);
 // Logout route.
 router.get("/logout", isAuthenticated, logout);
 
-
+// Get user
+router.get('/me', isAuthenticated, getUser) // means in this router user send request for this user.  
 
 
 export default router;

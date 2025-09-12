@@ -355,5 +355,18 @@ export const logout = catchAsyncError(async (req, res, next) => {
         success : true,
         message : "Logged out successfully.",
     });
+});
+
+
+
+
+// Create API form get user.
+export const getUser = catchAsyncError(async (req, res, next) => {
+    
+    const user = req.user; // this will that user what we matched with cookies.
+    res.status(200).json({
+        status : true,
+         user,
+    })
 })
 
