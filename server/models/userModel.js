@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 
 const userSchema = new mongoose.Schema({
@@ -97,6 +98,27 @@ userSchema.methods.generateToken = function(){
 
 }
 
+
+// generate Reset password token
+userSchema.methods.generateResetPasswordToken = function () {
+
+    // 1. Generate a random token (40 characters hex string) ex- 10996fa5443449e661ef90daf7f9d45b5c94fd46
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // 2. Hash the token and store in DB (for security)
+    // Only the hashed version is saved in DB so hackers cannot use it
+    this.resetPasswordToken = crypto
+        .createHash('sha256')    // hashing algorithm (fixed typo from 'shan256')
+        .update(resetToken)      // apply hashing to the resetToken
+        .digest('hex');          // convert result to hex string (store in DB)
+        
+     
+    // 3. Set token expiration time (15 minutes from now)
+    this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+    // 4. Return the plain reset token
+    return resetToken;
+}
 
 
 

@@ -368,5 +368,84 @@ export const getUser = catchAsyncError(async (req, res, next) => {
         status : true,
          user,
     })
-})
+});
 
+
+
+
+
+// Create Forgot password API.
+// In the code we will generate the token and send the complete fronend url in the mail 
+// Emaple: send mail is like "http://localhost:5173/password/reset/10996fa5443449e661ef90daf7f9d45b5c94fd46"
+export const forgotPassword = catchAsyncError(async (req, res, next) => {
+
+
+    // get Email from the requiest
+    const { email } = req.body || {};
+
+
+    if(!email){
+        return next(new ErrorHandler("Email is required", 400));
+    };
+
+
+    // Find that user from the given email.
+    const user = await User.findOne({
+        email,
+        accountVerified : true
+    });
+
+    
+    // if User not available
+    if(!user){
+        return next(new ErrorHandler("No user Found!", 404))
+    };
+    
+    // get new reset token
+    const resetToken = user.generateResetPasswordToken();
+    
+
+    // save user
+    await user.save({ validateBeforeSave : false })  //validate before check false will not check all user type values
+
+    // create a url added with reset token 
+    const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+
+    // Write/ create complete message 
+    const message = `Your Reset Password Token is: \n\n ${resetPasswordUrl} \n\n If you have not requested this email then please ignore it.`;
+
+    try{
+        // send mail throw mail
+        sendEmail({
+            email : user.email,
+            subject : "MERN AUTHENTICATION APP RESET PASSWORD",
+            message,
+        });
+
+        // show success messge.
+        res.status(200).json({
+            success : true,
+            message : `Email sent to ${user.email} successfully.`
+        });
+    }catch(error){
+        // if any resion can't send the message then clear these values 
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save({ validateBeforeSave : false });
+
+        // send error message.
+        return next(
+            new ErrorHandler(
+                error.message ? error.message : "Cannot send reset password token."
+            )
+        )
+    }
+
+
+    return res.status(200).json({
+        success : true,
+        data : 'we got the data'
+    })
+
+
+})
