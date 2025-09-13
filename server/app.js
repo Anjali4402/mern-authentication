@@ -6,6 +6,7 @@ import cors from 'cors';             // To allow frontend and backend to talk to
 import { connection } from './database/dbConnection.js';  // add Database connection
 import { errorMiddleware } from './middlewares/error.js';  // Add Error handler middleware
 import userRouter from './routes/userRouter.js';  // import userRouter
+import { removeUnverifiedAccounts } from './automation/removeUnverifiedAccounts.js'; // import the automation function.
 
 // Create an Express app (this will be our backend server)
 export const app = express();
@@ -38,6 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/v1/user', userRouter) // if url is consisting this '/api/v1/user' route then it will access to userRouter.
 
 
+removeUnverifiedAccounts();
 connection();
 
 
