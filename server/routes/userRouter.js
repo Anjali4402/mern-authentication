@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { forgotPassword, getUser, login, logout, register, verifyOTP } from '../controllers/userController.js';
+import { forgotPassword, getUser, login, logout, register, resetPassword, verifyOTP } from '../controllers/userController.js';
 import { isAuthenticated } from '../middlewares/auth.js';
 
 // create router instance 
@@ -23,6 +23,9 @@ router.get('/me', isAuthenticated, getUser) // means in this router user send re
 
 // forgot password
 router.post("/password/forgot", forgotPassword);
+
+// reset password
+router.put("/password/reset/:token", resetPassword);
 
 
 export default router;

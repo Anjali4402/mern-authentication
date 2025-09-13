@@ -4,6 +4,7 @@ import { User } from '../models/userModel.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import twilio from 'twilio';
 import { sendToken } from '../utils/sendToken.js';
+import crypto from 'crypto';
 
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -448,4 +449,67 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
     })
 
 
-})
+});
+
+
+
+// Create reset password api
+export const resetPassword = catchAsyncError( async(req, res, next) => {
+
+    // get token form the query params
+    const { token } = req.params;
+
+    // reset password token
+    // Hash that token what we get from the query params. so that it will easy to match with the stored token.
+    const resetPasswordToken = crypto.createHash("sha256").update(token).digest('hex');
+
+    // find user that match these two conditon :-
+    // 1. Which will match with resetPasswordToken
+    // 2. Expire data will be greater then current data
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire : { $gt : Date.now() },
+    });
+
+    // if user not found.
+    if(!user){
+        return next(
+            new ErrorHandler(
+                "Reset password token is invalid or has been expired.",
+                400
+            )
+        );
+    };
+
+    const { password , confirmPassword } = req.body || {};
+
+    if(!password || !confirmPassword){
+        return next(
+            new ErrorHandler(
+                "Password and Confirm Passsword is required",
+                404
+            )
+        )
+    }
+
+
+    // if password and confirm password do not match.
+    if(password !== confirmPassword){
+        return next(
+           new ErrorHandler("Password & confirm password do not match.", 400)
+        );
+    }
+
+    // if everything works.
+
+    // set these values
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    // save user.
+    await user.save();
+
+    // send token to the user.
+    sendToken(user, 200, "Reeset Password Successfully.", res)
+} )
