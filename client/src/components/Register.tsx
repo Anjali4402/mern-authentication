@@ -4,12 +4,47 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import type { RegisterType, VerificationMethod } from "../types/register";
+import { toast } from "react-toastify";
+import type { AxiosError } from "axios";
 
 const FormBox = () => {
   const [validated, setValidated] = useState(false);
 
   const navigate = useNavigate();
 
+
+  // handle Register user.
+  const handleRegisterUser = async (formData: RegisterType) => {
+    try {
+      // if Successfull run
+      const response = await axiosInstance.post("/register", formData);
+      if(response?.data?.success){
+        const successMsg = response?.data?.message || "User Register Successfully!"
+
+        // show success message.
+        toast.success(successMsg);
+
+        // navigate to the OTP verification page.
+        navigate(`/otp-verification/${formData.email}/${formData?.phone}`)
+      }
+    } catch (err) {
+         // If come any error  
+      const error = err as AxiosError<{ message?: string }>;
+      const errorResponse =
+        error?.response?.data?.message || "Something went wrong";
+
+      const errorMesssage = errorResponse + ", Please try again!";
+
+      // Show Error message.
+      toast.error(errorMesssage);
+    }
+  };
+
+
+
+  // handle submit form
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -17,29 +52,35 @@ const FormBox = () => {
     const form = event.currentTarget;
     const submitter = (event.nativeEvent as SubmitEvent)
       .submitter as HTMLButtonElement;
-    const verificationMethod = submitter?.value; // "phone" or "email"
+    const verificationMethod: VerificationMethod =
+      submitter?.value as VerificationMethod; // "phone" or "email"
 
     if (form.checkValidity() === false) {
       setValidated(true);
       return;
     }
 
-    const formData = {
-      fullName: (
+    // Form data
+    const formData: RegisterType = {
+      name: (
         form.elements.namedItem("validationCustomName") as HTMLInputElement
       ).value,
       email: (
         form.elements.namedItem("validationCustomEmail") as HTMLInputElement
       ).value,
-      phone: (form.elements.namedItem("validationCustomPhone") as HTMLInputElement)
-        .value,
+      phone:
+        "+91" +
+        (form.elements.namedItem("validationCustomPhone") as HTMLInputElement)
+          .value,
       password: (
         form.elements.namedItem("validationCustomPassword") as HTMLInputElement
       ).value,
+      verificationMethod: verificationMethod,
     };
 
-    console.log("Form Submitted ✅", formData);
-    console.log("verification method is ", verificationMethod);
+    
+    handleRegisterUser(formData);
+
     setValidated(true);
   };
 
