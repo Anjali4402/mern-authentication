@@ -25,7 +25,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
 
-      <ToastContainer />
+      <ToastContainer autoClose={3000} />
     </Router>
   );
 }
