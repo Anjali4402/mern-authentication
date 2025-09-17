@@ -1,17 +1,54 @@
 import React, { useState, useRef } from "react";
 import { Button, Container } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import axiosInstance from "../api/axiosInstance";
+import type { AxiosError } from "axios";
+import type { VerifyOTPType } from "../types/verifyOTP";
 
 const Verifyotp: React.FC = () => {
-  
+
+  // params
   const params = useParams();
+
+  // Get email and phone number from params.
   const { email, phone } = params;
-  console.log(email, phone)
 
+  const navigate = useNavigate();
 
+  // store api key
   const [otpKeys, setOtpKeys] = useState<string[]>(["", "", "", "", ""]);
   const inputRefs = useRef<HTMLInputElement[]>([]);
+
+
+  // handle verify otp api.
+  const verifyUser = async (formData: VerifyOTPType) => {
+    try {
+      const response = await axiosInstance.post("/otp-verification", formData);
+
+      if (response?.data?.success) {
+        const successMsg =
+          response?.data?.message || "OTP verify successfully !";
+
+        // show success message.
+        toast.success(successMsg);
+
+        navigate("/login");
+      }
+    } catch (err) {
+      // If come any error
+      const error = err as AxiosError<{ message?: string }>;
+      const errorResponse =
+        error?.response?.data?.message || "Something went wrong";
+
+      const errorMesssage = errorResponse + ", Please try again!";
+
+      // Show Error message.
+      toast.error(errorMesssage);
+    }
+  };
+
+
 
   // Handle typing inside OTP input
   const handleChange = (
@@ -28,6 +65,8 @@ const Verifyotp: React.FC = () => {
       inputRefs.current[idx + 1]?.focus();
     }
   };
+
+
 
   // Handle backspace and delete
   const handleKeyDown = (
@@ -51,13 +90,18 @@ const Verifyotp: React.FC = () => {
     }
   };
 
+
+  // submit validate
   const handleValidate = () => {
     const otp = otpKeys.join("");
-     console.log("OTP entered:", otp);
-     console.log(otp.includes(""))
     if (otp.length === otpKeys.length && otp.includes("")) {
-      console.log("OTP entered:", otp);
-      toast.success(otp)
+
+      const formData: VerifyOTPType = {
+        email: email ? email : "",
+        otp: otp,
+        phone: phone ? phone : "",
+      };
+      verifyUser(formData);
     } else {
       toast.error("Please enter full OTP");
     }
@@ -76,12 +120,7 @@ const Verifyotp: React.FC = () => {
             </h6>
             <div>
               <span>A code has been sent to</span>{" "}
-              <small id="maskedNumber">
-                *****{
-                  phone?.slice(10)
-                }
-
-              </small>
+              <small id="maskedNumber">*****{phone?.slice(10)}</small>
             </div>
 
             {/* OTP Inputs */}
@@ -104,7 +143,11 @@ const Verifyotp: React.FC = () => {
             </div>
 
             <div className="mt-4">
-              <Button id="validateBtn" variant="success" onClick={handleValidate}>
+              <Button
+                id="validateBtn"
+                variant="success"
+                onClick={handleValidate}
+              >
                 Validate
               </Button>
             </div>
