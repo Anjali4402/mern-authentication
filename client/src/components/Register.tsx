@@ -160,7 +160,7 @@ const FormBox = () => {
         </p>
       </Row>
 
-      <div className="d-flex gap-3">
+      <div className="d-flex gap-3 align-items-center justify-content-center my-2">
         <Button type="submit" variant="success" value="phone">
           Verify By Phone
         </Button>
@@ -176,7 +176,7 @@ const Register = () => {
   return (
     <div className="d-flex align-items-center justify-content-center bg-success vh-100">
       <Container className="p-4 bg-light rounded shadow w-50">
-        <h2 className="mb-4">Register</h2>
+        <h2 className="mb-4 text-center">Register</h2>
         <FormBox />
       </Container>
     </div>

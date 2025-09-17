@@ -4,13 +4,44 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
 import type { LoginType } from "../types/Login";
+import { toast } from "react-toastify";
+import type { AxiosError } from "axios";
 
 const FormBox = () => {
   const [validated, setValidated] = useState(false);
 
   const navigate = useNavigate();
- 
+
+  // handle Login user.
+  const handleLoginUser = async (formData: LoginType) => {
+    try {
+      // if Successfull run
+      const response = await axiosInstance.post("/Login", formData);
+      if (response?.data?.success) {
+        const successMsg =
+          response?.data?.message || "User Login Successfully!";
+
+        // show success message.
+        toast.success(successMsg);
+
+        // navigate to the OTP verification page.
+        // navigate(`/otp-verification/${formData.email}/${formData?.phone}`)
+        navigate("/");
+      }
+    } catch (err) {
+      // If come any error
+      const error = err as AxiosError<{ message?: string }>;
+      const errorResponse =
+        error?.response?.data?.message || "Something went wrong";
+
+      const errorMesssage = errorResponse + ", Please try again!";
+
+      // Show Error message.
+      toast.error(errorMesssage);
+    }
+  };
 
   // handle submit form
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -46,7 +77,7 @@ const FormBox = () => {
       // verificationMethod: verificationMethod,
     };
 
-    console.log(formData);
+    handleLoginUser(formData);
 
     setValidated(true);
   };
