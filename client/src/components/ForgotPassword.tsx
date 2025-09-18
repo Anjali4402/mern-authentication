@@ -3,11 +3,46 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
 import type { ForgotPasswordType } from "../types/ForgotType";
+import { toast } from "react-toastify";
+import type { AxiosError } from "axios";
 
 const FormBox = () => {
   const [validated, setValidated] = useState(false);
-  
+
+  const navigate = useNavigate();
+
+  // handle ForgotPassword user.
+  const handleForgotPasswordUser = async (formData: ForgotPasswordType) => {
+    try {
+      // if Successfull run
+      const response = await axiosInstance.post("/password/forgot", formData);
+      console.log(response)
+      if (response?.data?.success) {
+        const successMsg =
+          response?.data?.message || "User ForgotPassword Successfully!";
+
+        // show success message.
+        toast.success(successMsg+' Check you mail.');
+
+        // navigate to the OTP verification page.
+        // navigate(`/otp-verification/${formData.email}/${formData?.phone}`)
+        navigate("/");
+      }
+    } catch (err) {
+      // If come any error
+      const error = err as AxiosError<{ message?: string }>;
+      const errorResponse =
+        error?.response?.data?.message || "Something went wrong";
+
+      const errorMesssage = errorResponse + ", Please try again!";
+
+      // Show Error message.
+      toast.error(errorMesssage);
+    }
+  };
 
   // handle submit form
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,6 +63,7 @@ const FormBox = () => {
       ).value,
     };
 
+    handleForgotPasswordUser(formData);
 
     setValidated(true);
   };
