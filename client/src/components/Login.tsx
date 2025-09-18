@@ -116,6 +116,17 @@ const FormBox = () => {
         </Form.Group>
       </Row>
 
+
+      <Row className="mb-3 text-end">
+        <h6 className="fw-bold"
+        onClick={()=>{
+          navigate("/forgot-password")
+        }}
+         >Forgot Possword ?</h6>
+      </Row>
+
+
+
       <Row>
         <p className="text-center">
           Don't have an account ?{" "}
