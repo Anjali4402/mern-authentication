@@ -22,7 +22,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/otp-verification/:email/:phone" element={<Verifyotp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/password/reset/:token" element={<ResetPassword />} />
       </Routes>
 
       <ToastContainer autoClose={3000} />
