@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Button, Container } from "react-bootstrap";
+import React, { useState, useRef, useEffect } from "react";
+import { Button, Container, Row } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "../api/axiosInstance";
@@ -7,7 +7,6 @@ import type { AxiosError } from "axios";
 import type { VerifyOTPType } from "../types/verifyOTP";
 
 const Verifyotp: React.FC = () => {
-
   // params
   const params = useParams();
 
@@ -20,6 +19,28 @@ const Verifyotp: React.FC = () => {
   const [otpKeys, setOtpKeys] = useState<string[]>(["", "", "", "", ""]);
   const inputRefs = useRef<HTMLInputElement[]>([]);
 
+
+  // for 1mintue dur
+
+  // set time to resend otp.
+    const [timer, setTimer] = useState(60);
+  const [isResendVisible, setIsResendVisible] = useState(false);
+
+  useEffect(() => {
+    let interval;
+
+    if (timer > 0) {
+      setIsResendVisible(false); 
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setIsResendVisible(true); 
+      clearInterval(interval);
+    }
+
+    return () => clearInterval(interval);
+  }, [timer]);
 
   // handle verify otp api.
   const verifyUser = async (formData: VerifyOTPType) => {
@@ -48,8 +69,6 @@ const Verifyotp: React.FC = () => {
     }
   };
 
-
-
   // Handle typing inside OTP input
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -65,8 +84,6 @@ const Verifyotp: React.FC = () => {
       inputRefs.current[idx + 1]?.focus();
     }
   };
-
-
 
   // Handle backspace and delete
   const handleKeyDown = (
@@ -90,12 +107,10 @@ const Verifyotp: React.FC = () => {
     }
   };
 
-
   // submit validate
   const handleValidate = () => {
     const otp = otpKeys.join("");
     if (otp.length === otpKeys.length && otp.includes("")) {
-
       const formData: VerifyOTPType = {
         email: email ? email : "",
         otp: otp,
@@ -106,6 +121,9 @@ const Verifyotp: React.FC = () => {
       toast.error("Please enter full OTP");
     }
   };
+
+
+
 
   return (
     <div className="d-flex align-items-center justify-content-center bg-success vh-100">
@@ -142,7 +160,26 @@ const Verifyotp: React.FC = () => {
               ))}
             </div>
 
-            <div className="mt-4">
+            <Row className="mt-2">
+              <p className="text-center">
+                Did't receive the verification OTP ?{" "}
+                {
+                  !isResendVisible ?
+                  <span className="font-weight-bold cursor-pointer text-primary" >{`Resend OTP in ${timer}s`}</span>
+                  :
+                  <span
+                  onClick={() => {
+                    navigate("/register");
+                  }}
+                  className="font-weight-bold cursor-pointer text-primary"
+                >Resend again
+                </span>
+
+                }
+              </p>
+            </Row>
+
+            <div className="mt-2">
               <Button
                 id="validateBtn"
                 variant="success"
